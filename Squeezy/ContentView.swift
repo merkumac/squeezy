@@ -15,8 +15,9 @@ struct ContentView: View {
     @State private var isAnalyzing = false
     @State private var errorMessage: String?
     @State private var showError = false
-    
     @State private var selectedPreset: CompressionPreset = .balanced
+    @State private var isCompressing = false
+    @State private var outputURL: URL?
     
     private let probe = VideoProbe()
 
@@ -55,6 +56,24 @@ struct ContentView: View {
                     CompressionProfileRow(plan: plan, isSelected: selectedPreset == plan.preset) {
                         selectedPreset = plan.preset
                     }
+                }
+                
+                Button(isCompressing ? "Compressing..." : "Compress") {
+                    guard let plan = plans.first(where: {
+                        $0.preset == selectedPreset
+                    }) else {
+                        return
+                    }
+                    
+                    Task {
+                        await compressedVideo(info, plan: plan)
+                    }
+                }
+                .disabled(isCompressing || isAnalyzing)
+                
+                if let outputURL {
+                    Text("Saved: \(outputURL.lastPathComponent)")
+                        .foregroundStyle(.green)
                 }
             } else {
                 Text("Drop a video here")
@@ -101,6 +120,35 @@ struct ContentView: View {
     }
 
     @MainActor
+    private func compressedVideo(
+        _ info: VideoInfo,
+        plan: CompressionPlan
+    ) async {
+        guard !isCompressing else { return }
+        
+        isCompressing = true
+        defer { isCompressing = false }
+        
+        let input = info.url
+        let filename = input.deletingPathExtension().lastPathComponent
+        let outputFilename = filename + "-squeezy.mp4"
+        
+        let output = input.deletingLastPathComponent()
+            .appendingPathComponent(outputFilename)
+        
+        do {
+            let encoder = VideoEncoder()
+            
+            try await Task.detached {
+                try encoder.encode(inputURL: input, outputURL: output, plan: plan)
+            }.value
+            
+            outputURL = output
+        } catch {
+            presentError(error.localizedDescription)
+        }
+    }
+    
     private func openVideo() {
         let panel = NSOpenPanel()
         
