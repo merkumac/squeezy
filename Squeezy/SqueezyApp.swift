@@ -9,9 +9,20 @@ import SwiftUI
 
 @main
 struct SqueezyApp: App {
+    @FocusedValue(\.openVideo) private var openVideo
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+        }
+        .commands {
+            CommandGroup(replacing: .newItem) {
+                Button("Open...") {
+                    openVideo?()
+                }
+                .keyboardShortcut("o", modifiers: .command)
+                .disabled(openVideo == nil)
+            }
         }
     }
 }

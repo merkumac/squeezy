@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 import UniformTypeIdentifiers
 
 struct ContentView: View {
@@ -94,9 +95,31 @@ struct ContentView: View {
             Text(errorMessage ?? "Unknown error")
         }
         .frame(minWidth: 600, minHeight: 650)
+        .focusedSceneValue(\.openVideo) {
+            openVideo()
+        }
     }
 
     @MainActor
+    private func openVideo() {
+        let panel = NSOpenPanel()
+        
+        panel.allowedContentTypes = [
+            .mpeg4Movie,
+            .quickTimeMovie,
+            UTType(filenameExtension: "mkv")!
+        ]
+        
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        
+        guard panel.runModal() == .OK,
+              let url = panel.url else { return }
+        
+        Task { await handleFile(url) }
+    }
+    
     private func handleFile(_ url: URL) async {
         guard !isAnalyzing else { return }
         
