@@ -44,17 +44,22 @@ nonisolated struct CompressionPlan: Identifiable {
 nonisolated struct CompressionPlanner {
     private let overheadFactor = 0.95
     private let minimumVideoBitrate = 150_000
+    private let maximumSourceRatio = 0.90
     
     func makePlans(
         duration: Double,
-        hasAudio: Bool
+        hasAudio: Bool,
+        sourceBytes: Int64
     ) -> [CompressionPlan] {
-        guard duration.isFinite, duration > 0 else {
+        guard duration.isFinite, duration > 0, sourceBytes > 0 else {
             return []
         }
     
         return CompressionPreset.allCases.map { preset in
-            let target = Int64(preset.targetMegabytes) * 1_000_000
+            let presetLimit = Int64(preset.targetMegabytes) * 1_000_000
+            let sourceLimit = Int64(Double(sourceBytes) * maximumSourceRatio)
+            let target = min(presetLimit, sourceLimit)
+            
             let audio = hasAudio ? preset.audioBitrate : 0
             
             let availableBits = Double(target) * 8 * overheadFactor

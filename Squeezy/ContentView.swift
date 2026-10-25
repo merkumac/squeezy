@@ -46,7 +46,8 @@ struct ContentView: View {
                 
                 let plans = CompressionPlanner().makePlans(
                     duration: info.duration,
-                    hasAudio: info.hasAudio
+                    hasAudio: info.hasAudio,
+                    sourceBytes: info.fileSize
                 )
                 
                 ForEach(plans) { plan in

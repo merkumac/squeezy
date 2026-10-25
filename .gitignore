@@ -1,0 +1,9 @@
+# test videos and generated outputs
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.webm
+
+# ffmpeg temp files
+*.part
