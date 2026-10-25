@@ -15,6 +15,8 @@ struct ContentView: View {
     @State private var errorMessage: String?
     @State private var showError = false
     
+    @State private var selectedPreset: CompressionPreset = .balanced
+    
     private let probe = VideoProbe()
 
     var body: some View {
@@ -35,6 +37,23 @@ struct ContentView: View {
                 LabeledContent("Frame rate", value: String(format: "%.2f FPS", info.frameRate))
                 LabeledContent("Codec", value: info.codec)
                 LabeledContent("Audio", value: info.hasAudio ? "Yes" : "No")
+                
+                Divider()
+                    .padding(.vertical, 8)
+                
+                Text("Choose compression")
+                    .font(.headline)
+                
+                let plans = CompressionPlanner().makePlans(
+                    duration: info.duration,
+                    hasAudio: info.hasAudio
+                )
+                
+                ForEach(plans) { plan in
+                    CompressionProfileRow(plan: plan, isSelected: selectedPreset == plan.preset) {
+                        selectedPreset = plan.preset
+                    }
+                }
             } else {
                 Text("Drop a video here")
                     .font(.title2.bold())
@@ -73,7 +92,7 @@ struct ContentView: View {
         } message: {
             Text(errorMessage ?? "Unknown error")
         }
-        .frame(minWidth: 520, minHeight: 340)
+        .frame(minWidth: 600, minHeight: 650)
     }
 
     @MainActor
