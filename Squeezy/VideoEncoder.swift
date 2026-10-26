@@ -16,6 +16,8 @@ nonisolated struct VideoEncoder {
             "-hide_banner",
             "-nostdin",
             "-loglevel", "error",
+            "-progress", "pipe:1",
+            "-nostats",
             "-i", inputURL.path(percentEncoded: false),
             "-map", "0:v:0",
             "-map", "0:a?",
@@ -32,11 +34,21 @@ nonisolated struct VideoEncoder {
         let errorPipe = Pipe()
         process.standardError = errorPipe
         
+        let progressPipe = Pipe()
+        process.standardOutput = progressPipe
+        
         try process.run()
+        
+        let progressData = progressPipe.fileHandleForReading.readDataToEndOfFile()
+        let progressText = String(decoding: progressData, as: UTF8.self)
+        
         process.waitUntilExit()
         
         let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
         let errorText = String(decoding: errorData, as: UTF8.self)
+        
+        print("FFmpeg progress:")
+        print(progressText)
         
         print("FFmpeg stderr:", errorText)
         print("FFmpeg exit code:", process.terminationStatus)
