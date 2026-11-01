@@ -10,6 +10,9 @@ import AppKit
 import UniformTypeIdentifiers
 
 struct ContentView: View {
+    
+    // Mark: - State
+    
     @State private var videoInfo: VideoInfo?
     @State private var isTargeted = false
     @State private var isAnalyzing = false
@@ -23,6 +26,8 @@ struct ContentView: View {
     
     private let probe = VideoProbe()
 
+    // MARK: - View
+    
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "film.stack")
@@ -99,6 +104,8 @@ struct ContentView: View {
                             Text(encodingProgress.speed).foregroundStyle(.secondary)
                         }
                         
+                        etaView(duration: info.duration, progress: encodingProgress)
+                        
                         HStack {
                             Spacer()
                             
@@ -158,7 +165,28 @@ struct ContentView: View {
             openVideo()
         }
     }
+    
+    //  MARK: - View Components
+    
+    @ViewBuilder
+    private func etaView(duration: Double, progress: EncodingProgress) -> some View {
+        let remaining = CompressionETA.remainingSeconds(
+            duration: duration,
+            processedSeconds: progress.processedSeconds,
+            speed: progress.speed
+        )
+        
+        Label(
+            remaining.map { CompressionETA.formatted($0) }
+                ?? "Estimating time remaining...",
+            systemImage: "clock"
+        )
+        .font(.callout)
+        .foregroundStyle(.secondary)
+    }
 
+    // MARK: - Actions
+    
     @MainActor
     private func compressedVideo(
         _ info: VideoInfo,
