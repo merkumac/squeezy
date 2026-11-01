@@ -12,6 +12,7 @@ nonisolated struct VideoEncoder {
                 outputURL: URL,
                 plan: CompressionPlan,
                 duration: Double,
+                control: EncodingControl,
                 onProgress: @escaping @Sendable (EncodingProgress) -> Void
     ) throws {
         let process = Process()
@@ -35,12 +36,29 @@ nonisolated struct VideoEncoder {
             "-n",
             outputURL.path(percentEncoded: false)
         ]
-        
+
         let errorPipe = Pipe()
         process.standardError = errorPipe
         
         let progressPipe = Pipe()
         process.standardOutput = progressPipe
+        
+        let fileManager = FileManager.default
+        let outputPath = outputURL.path(percentEncoded: false)
+        
+        guard !fileManager.fileExists(atPath: outputPath) else {
+            throw VideoEncoderError.outputAlreadyExists
+        }
+        
+        try control.run(process)
+        
+        defer { control.finish() }
+        
+        defer {
+            if control.isCancelled {
+                try? fileManager.removeItem(at: outputURL)
+            }
+        }
         
         let stderrQueue = DispatchQueue(label: "squeezy.ffmpeg.stderr")
         let stderrGroup = DispatchGroup()
@@ -56,8 +74,6 @@ nonisolated struct VideoEncoder {
             
             stderrGroup.leave()
         }
-        
-        try process.run()
         
         var parser = FFmpegProgressParser(duration: duration)
         var buffer = Data()
@@ -84,6 +100,10 @@ nonisolated struct VideoEncoder {
         process.waitUntilExit()
         stderrGroup.wait()
         
+        if control.isCancelled {
+            throw CancellationError()
+        }
+        
         guard process.terminationStatus == 0 else {
             throw VideoEncoderError.encodingFailed(
                 process.terminationStatus
@@ -101,6 +121,7 @@ nonisolated struct VideoEncoder {
 nonisolated enum VideoEncoderError: LocalizedError {
     case encodingFailed(Int32)
     case outputMissing
+    case outputAlreadyExists
     
     var errorDescription: String? {
         switch self {
@@ -109,6 +130,9 @@ nonisolated enum VideoEncoderError: LocalizedError {
             
         case .outputMissing:
             "FFmpeg finished but the output file is missing."
+            
+        case .outputAlreadyExists:
+            "Output file already exists."
         }
     }
 }

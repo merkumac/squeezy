@@ -17,6 +17,7 @@ struct ContentView: View {
     @State private var showError = false
     @State private var selectedPreset: CompressionPreset = .balanced
     @State private var isCompressing = false
+    @State private var encodingControl: EncodingControl?
     @State private var outputURL: URL?
     @State private var encodingProgress: EncodingProgress?
     
@@ -97,6 +98,15 @@ struct ContentView: View {
                             
                             Text(encodingProgress.speed).foregroundStyle(.secondary)
                         }
+                        
+                        HStack {
+                            Spacer()
+                            
+                            Button("Cancel", role: .cancel) {
+                                encodingControl?.cancel()
+                            }
+                        }
+                        .padding(.top, 8)
                     }
                     .padding(.vertical, 8)
                 }
@@ -159,7 +169,11 @@ struct ContentView: View {
         encodingProgress = nil
         outputURL = nil
         isCompressing = true
-        defer { isCompressing = false }
+        
+        defer {
+            isCompressing = false
+            encodingControl = nil
+        }
         
         let input = info.url
         let filename = input.deletingPathExtension().lastPathComponent
@@ -170,21 +184,27 @@ struct ContentView: View {
     
         do {
             let encoder = VideoEncoder()
+            let control = EncodingControl()
+            encodingControl = control
             
             try await Task.detached {
                 try encoder.encode(
                     inputURL: input,
                     outputURL: output,
                     plan: plan,
-                    duration: info.duration
+                    duration: info.duration,
+                    control: control
                 ) {
-                    progress in Task {
-                        @MainActor in self.encodingProgress = progress
+                    progress in Task { @MainActor in
+                        guard !control.isCancelled else { return }
+                        self.encodingProgress = progress
                     }
                 }
             }.value
             
             outputURL = output
+        } catch is CancellationError {
+            encodingProgress = nil
         } catch {
             presentError(error.localizedDescription)
         }
