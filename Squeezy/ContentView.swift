@@ -165,6 +165,11 @@ struct ContentView: View {
         plan: CompressionPlan
     ) async {
         guard !isCompressing else { return }
+
+        let input = info.url
+        guard let output = chooseOutputURL(for: input) else {
+            return
+        }
         
         encodingProgress = nil
         outputURL = nil
@@ -174,13 +179,6 @@ struct ContentView: View {
             isCompressing = false
             encodingControl = nil
         }
-        
-        let input = info.url
-        let filename = input.deletingPathExtension().lastPathComponent
-        let outputFilename = filename + "-squeezy.mp4"
-        
-        let output = input.deletingLastPathComponent()
-            .appendingPathComponent(outputFilename)
     
         do {
             let encoder = VideoEncoder()
@@ -208,6 +206,30 @@ struct ContentView: View {
         } catch {
             presentError(error.localizedDescription)
         }
+    }
+    
+    private func chooseOutputURL(for input: URL) -> URL? {
+        let panel = NSSavePanel()
+        
+        panel.title = "Save compressed video"
+        panel.nameFieldStringValue = input.deletingPathExtension().lastPathComponent + "-squeezy.mp4"
+        panel.allowedContentTypes = [.mpeg4Movie]
+        panel.canCreateDirectories = true
+        
+        guard panel.runModal() == .OK else {
+            return nil
+        }
+        
+        guard let url = panel.url else {
+            return nil
+        }
+        
+        guard url.standardizedFileURL != input.standardizedFileURL else {
+            presentError("Cannot overwrite the original video.")
+            return nil
+        }
+        
+        return panel.url
     }
     
     private func openVideo() {
