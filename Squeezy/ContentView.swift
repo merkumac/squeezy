@@ -171,6 +171,10 @@ struct ContentView: View {
             return
         }
         
+        let temporaryOutput = output
+            .deletingLastPathComponent()
+            .appendingPathComponent(".squeezy-\(UUID().uuidString).mp4")
+        
         encodingProgress = nil
         outputURL = nil
         isCompressing = true
@@ -179,16 +183,17 @@ struct ContentView: View {
             isCompressing = false
             encodingControl = nil
         }
+        
+        let control = EncodingControl()
+        encodingControl = control
     
         do {
             let encoder = VideoEncoder()
-            let control = EncodingControl()
-            encodingControl = control
             
             try await Task.detached {
                 try encoder.encode(
                     inputURL: input,
-                    outputURL: output,
+                    outputURL: temporaryOutput,
                     plan: plan,
                     duration: info.duration,
                     control: control
@@ -200,12 +205,29 @@ struct ContentView: View {
                 }
             }.value
             
+            guard !control.isCancelled else {
+                throw CancellationError()
+            }
+            
+            guard !FileManager.default.fileExists(atPath: output.path(percentEncoded: false)
+            ) else {
+                throw CocoaError(.fileWriteFileExists)
+            }
+            
+            try FileManager.default.moveItem(
+                at: temporaryOutput,
+                to: output
+            )
+            
             outputURL = output
+            
         } catch is CancellationError {
             encodingProgress = nil
         } catch {
             presentError(error.localizedDescription)
         }
+        
+        try? FileManager.default.removeItem(at: temporaryOutput)
     }
     
     private func chooseOutputURL(for input: URL) -> URL? {
