@@ -8,7 +8,12 @@
 import Foundation
 
 nonisolated struct VideoEncoder {
-    func encode(inputURL: URL, outputURL: URL, plan: CompressionPlan) throws {
+    func encode(inputURL: URL,
+                outputURL: URL,
+                plan: CompressionPlan,
+                duration: Double,
+                onProgress: @escaping @Sendable (EncodingProgress) -> Void
+    ) throws {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/ffmpeg")
         
@@ -37,21 +42,47 @@ nonisolated struct VideoEncoder {
         let progressPipe = Pipe()
         process.standardOutput = progressPipe
         
+        let stderrQueue = DispatchQueue(label: "squeezy.ffmpeg.stderr")
+        let stderrGroup = DispatchGroup()
+        
+        stderrGroup.enter()
+        stderrQueue.async {
+            let data = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            
+            if !data.isEmpty {
+                let message = String(decoding: data, as: UTF8.self)
+                print("FFmpeg:", message)
+            }
+            
+            stderrGroup.leave()
+        }
+        
         try process.run()
         
-        let progressData = progressPipe.fileHandleForReading.readDataToEndOfFile()
-        let progressText = String(decoding: progressData, as: UTF8.self)
+        var parser = FFmpegProgressParser(duration: duration)
+        var buffer = Data()
+        
+        while true {
+            let chunk = progressPipe.fileHandleForReading.availableData
+            
+            if chunk.isEmpty {
+                break
+            }
+            
+            buffer.append(chunk)
+            
+            while let newline = buffer.firstIndex(of: 10) {
+                let line = String(decoding: buffer.prefix(upTo: newline), as: UTF8.self)
+                buffer.removeSubrange(...newline)
+                
+                if let progress = parser.consume(line) {
+                    onProgress(progress)
+                }
+            }
+        }
         
         process.waitUntilExit()
-        
-        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-        let errorText = String(decoding: errorData, as: UTF8.self)
-        
-        print("FFmpeg progress:")
-        print(progressText)
-        
-        print("FFmpeg stderr:", errorText)
-        print("FFmpeg exit code:", process.terminationStatus)
+        stderrGroup.wait()
         
         guard process.terminationStatus == 0 else {
             throw VideoEncoderError.encodingFailed(

@@ -15,6 +15,8 @@ struct SqueezyApp: App {
         WindowGroup {
             ContentView()
         }
+        .windowResizability(.contentSize)
+        .defaultSize(width: 600, height: 650)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("Open...") {

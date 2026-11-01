@@ -18,11 +18,12 @@ struct ContentView: View {
     @State private var selectedPreset: CompressionPreset = .balanced
     @State private var isCompressing = false
     @State private var outputURL: URL?
+    @State private var encodingProgress: EncodingProgress?
     
     private let probe = VideoProbe()
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             Image(systemName: "film.stack")
                 .font(.system(size:44))
                 .foregroundStyle(.secondary)
@@ -33,12 +34,24 @@ struct ContentView: View {
                 Text(info.url.lastPathComponent)
                     .font(.headline)
                 
-                LabeledContent("Duration", value: info.durationText)
-                LabeledContent("Size", value: info.fileSizeText)
-                LabeledContent("Resolution", value: "\(info.width) x \(info.height)")
-                LabeledContent("Frame rate", value: String(format: "%.2f FPS", info.frameRate))
-                LabeledContent("Codec", value: info.codec)
-                LabeledContent("Audio", value: info.hasAudio ? "Yes" : "No")
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), alignment: .leading),
+                        GridItem(.flexible(), alignment: .leading)
+                    ],
+                    alignment: .leading,
+                    spacing: 12
+                ) {
+                    LabeledContent("Duration", value: info.durationText)
+                    LabeledContent("Size", value: info.fileSizeText)
+                    
+                    LabeledContent("Resolution", value: "\(info.width) x \(info.height)")
+                    LabeledContent("Frame rate", value: String(format: "%.2f FPS", info.frameRate))
+                    
+                    LabeledContent("Codec", value: info.codec)
+                    LabeledContent("Audio", value: info.hasAudio ? "Yes" : "No")
+                }
+                .font(.callout)
                 
                 Divider()
                     .padding(.vertical, 8)
@@ -71,6 +84,23 @@ struct ContentView: View {
                 }
                 .disabled(isCompressing || isAnalyzing)
                 
+                if isCompressing, let encodingProgress {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ProgressView(value: encodingProgress.fraction).progressViewStyle(.linear)
+                        
+                        HStack {
+                            Text(
+                                encodingProgress.fraction, format: .percent.precision(.fractionLength(0))
+                            )
+                            
+                            Spacer()
+                            
+                            Text(encodingProgress.speed).foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+                
                 if let outputURL {
                     Text("Saved: \(outputURL.lastPathComponent)")
                         .foregroundStyle(.green)
@@ -84,7 +114,7 @@ struct ContentView: View {
             }
         }
         .padding(40)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
         .background {
             RoundedRectangle(cornerRadius: 16)
                 .strokeBorder(
@@ -113,7 +143,7 @@ struct ContentView: View {
         } message: {
             Text(errorMessage ?? "Unknown error")
         }
-        .frame(minWidth: 600, minHeight: 650)
+        .frame(minWidth: 600)
         .focusedSceneValue(\.openVideo) {
             openVideo()
         }
@@ -126,6 +156,8 @@ struct ContentView: View {
     ) async {
         guard !isCompressing else { return }
         
+        encodingProgress = nil
+        outputURL = nil
         isCompressing = true
         defer { isCompressing = false }
         
@@ -135,12 +167,21 @@ struct ContentView: View {
         
         let output = input.deletingLastPathComponent()
             .appendingPathComponent(outputFilename)
-        
+    
         do {
             let encoder = VideoEncoder()
             
             try await Task.detached {
-                try encoder.encode(inputURL: input, outputURL: output, plan: plan)
+                try encoder.encode(
+                    inputURL: input,
+                    outputURL: output,
+                    plan: plan,
+                    duration: info.duration
+                ) {
+                    progress in Task {
+                        @MainActor in self.encodingProgress = progress
+                    }
+                }
             }.value
             
             outputURL = output
