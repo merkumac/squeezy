@@ -104,9 +104,9 @@ struct ContentView: View {
                             Text(encodingProgress.speed).foregroundStyle(.secondary)
                         }
                         
-                        etaView(duration: info.duration, progress: encodingProgress)
-                        
                         HStack {
+                            etaView(duration: info.duration, progress: encodingProgress)
+                            
                             Spacer()
                             
                             Button("Cancel", role: .cancel) {
