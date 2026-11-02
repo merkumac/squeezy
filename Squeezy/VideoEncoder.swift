@@ -18,6 +18,15 @@ nonisolated struct VideoEncoder {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/ffmpeg")
         
+        var videoFilters: [String] = []
+        
+        if plan.outputWidth > 0 && plan.outputHeight > 0 {
+            videoFilters = [
+                "-vf",
+                "scale=\(plan.outputWidth):\(plan.outputHeight)"
+            ]
+        }
+        
         process.arguments = [
             "-hide_banner",
             "-nostdin",
@@ -26,7 +35,10 @@ nonisolated struct VideoEncoder {
             "-nostats",
             "-i", inputURL.path(percentEncoded: false),
             "-map", "0:v:0",
-            "-map", "0:a?",
+            "-map", "0:a?"
+            ]
+            + videoFilters
+            + [
             "-c:v", "hevc_videotoolbox",
             "-b:v", String(plan.videoBitrate),
             "-tag:v", "hvc1",

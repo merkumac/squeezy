@@ -68,11 +68,17 @@ struct ContentView: View {
                 let plans = CompressionPlanner().makePlans(
                     duration: info.duration,
                     hasAudio: info.hasAudio,
-                    sourceBytes: info.fileSize
+                    sourceBytes: info.fileSize,
+                    width: info.width,
+                    height: info.height,
+                    frameRate: info.frameRate
                 )
                 
                 ForEach(plans) { plan in
-                    CompressionProfileRow(plan: plan, isSelected: selectedPreset == plan.preset) {
+                    CompressionProfileRow(
+                        plan: plan,
+                        isSelected: selectedPreset == plan.preset
+                    ) {
                         selectedPreset = plan.preset
                     }
                 }

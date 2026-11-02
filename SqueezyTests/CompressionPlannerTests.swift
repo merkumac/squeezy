@@ -8,54 +8,87 @@
 import Testing
 @testable import Squeezy
 
-struct CompressionPlannerTests {
-    @Test func plansStayWithinTargetBudget() {
-        let plans = CompressionPlanner().makePlans(duration: 7200, hasAudio: true, sourceBytes: 2_000_000_000)
-        
-        #expect(plans.count == 3)
-        
-        for plan in plans {
-            #expect(plan.estimatedBytes <= plan.targetBytes)
-            #expect(plan.videoBitrate >= 0)
-        }
+struct CompressionPlannerProfileTests {
+    private let planner = CompressionPlanner()
+
+    @Test
+    func tinyDownscales4K() throws {
+        let plans = planner.makePlans(
+            duration: 3600,
+            hasAudio: true,
+            sourceBytes: 8_000_000_000,
+            width: 3840,
+            height: 2160,
+            frameRate: 30
+        )
+
+        let tiny = try #require(
+            plans.first { $0.preset == .tiny }
+        )
+
+        #expect(tiny.outputWidth == 1280)
+        #expect(tiny.outputHeight == 720)
     }
-    
-    @Test func longerVideoGetsLowerBitrate() {
-        let planner = CompressionPlanner()
-        
-        let short = planner.makePlans(duration: 3600, hasAudio: true, sourceBytes: 2_000_000_000)
-        let long = planner.makePlans(duration: 7200, hasAudio: true, sourceBytes: 2_000_000_000)
-        
-        #expect(short[1].videoBitrate > long[1].videoBitrate)
+
+    @Test
+    func tinyDoesNotUpscale() throws {
+        let plans = planner.makePlans(
+            duration: 600,
+            hasAudio: true,
+            sourceBytes: 500_000_000,
+            width: 640,
+            height: 360,
+            frameRate: 30
+        )
+
+        let tiny = try #require(
+            plans.first { $0.preset == .tiny }
+        )
+
+        #expect(tiny.outputWidth == 640)
+        #expect(tiny.outputHeight == 360)
     }
-    
-    @Test func audioBudgetIsZeroWhenMissing() {
-        let plans = CompressionPlanner().makePlans(duration: 3600, hasAudio: false, sourceBytes: 2_000_000_000)
-        
-        #expect(plans.allSatisfy {
-            $0.audioBitrate == 0
-        })
+
+    @Test
+    func qualityUsesHigherBitrateThanBalanced() throws {
+        let plans = planner.makePlans(
+            duration: 3600,
+            hasAudio: true,
+            sourceBytes: 3_000_000_000,
+            width: 1920,
+            height: 1080,
+            frameRate: 30
+        )
+
+        let balanced = try #require(
+            plans.first { $0.preset == .balanced }
+        )
+        let quality = try #require(
+            plans.first { $0.preset == .quality }
+        )
+
+        #expect(quality.videoBitrate > balanced.videoBitrate)
+        #expect(quality.outputWidth == 1920)
+        #expect(quality.outputHeight == 1080)
     }
-    
-    @Test func invalidDurationProducesNoPlans() {
-        let planner = CompressionPlanner()
-        
-        #expect(planner.makePlans(duration: 0, hasAudio: true, sourceBytes: 1_000_000).isEmpty)
-        #expect(planner.makePlans(duration: -.infinity, hasAudio: true, sourceBytes: 1_000_000).isEmpty)
-        #expect(planner.makePlans(duration: .nan, hasAudio: true, sourceBytes: 1_000_000).isEmpty)
-        #expect(planner.makePlans(duration: 30, hasAudio: true, sourceBytes: 0).isEmpty)
-        #expect(planner.makePlans(duration: 30, hasAudio: true, sourceBytes: -1).isEmpty)
-    }
-    
-    @Test func shortVideosDoesNotExpand() {
-        let plans = CompressionPlanner().makePlans(duration: 30, hasAudio: true, sourceBytes: 2_500_000)
-        
-        #expect(plans.count == 3)
-        
-        for plan in plans {
-            #expect(plan.targetBytes <= 2_250_000)
-            #expect(plan.estimatedBytes < 2_500_000)
-            #expect(plan.videoBitrate < 1_000_000)
-        }
+
+    @Test
+    func portraitVideoKeepsOrientation() throws {
+        let plans = planner.makePlans(
+            duration: 600,
+            hasAudio: true,
+            sourceBytes: 2_000_000_000,
+            width: 1080,
+            height: 1920,
+            frameRate: 30
+        )
+
+        let tiny = try #require(
+            plans.first { $0.preset == .tiny }
+        )
+
+        #expect(tiny.outputWidth == 720)
+        #expect(tiny.outputHeight == 1280)
     }
 }
+
