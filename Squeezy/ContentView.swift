@@ -125,8 +125,17 @@ struct ContentView: View {
                 }
                 
                 if let outputURL {
-                    Text("Saved: \(outputURL.lastPathComponent)")
-                        .foregroundStyle(.green)
+                    Button {
+                        NSWorkspace.shared.activateFileViewerSelecting([outputURL])
+                    } label: {
+                        Label(
+                            "Saved: \(outputURL.lastPathComponent)",
+                            systemImage: "checkmark.circle.fill"
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.green)
+                    .help("Show in Finder")
                 }
             } else {
                 Text("Drop a video here")
@@ -201,6 +210,12 @@ struct ContentView: View {
         guard !isCompressing else { return }
 
         let input = info.url
+        let scoped = input.startAccessingSecurityScopedResource()
+        defer {
+            if scoped {
+                input.stopAccessingSecurityScopedResource()
+            }
+        }
         guard let output = chooseOutputURL(for: input) else {
             return
         }
