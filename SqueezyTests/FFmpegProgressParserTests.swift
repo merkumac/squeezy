@@ -5,39 +5,42 @@
 //  Created by kort on 26/10/2026.
 //
 
-import XCTest
+import Testing
 @testable import Squeezy
 
-final class FFmpegProgressParserTests: XCTestCase {
-    func testParsesProgressRecord() {
+struct FFmpegProgressParserTests {
+
+    @Test func parsesProgressRecord() {
         var parser = FFmpegProgressParser(duration: 30)
 
-        XCTAssertNil(parser.consume("out_time_us=15000000"))
-        XCTAssertNil(parser.consume("speed=2.5x"))
+        #expect(parser.consume("out_time_us=15000000") == nil)
+        #expect(parser.consume("speed=2.5x") == nil)
 
         let progress = parser.consume("progress=continue")
 
-        XCTAssertNotNil(progress)
-        XCTAssertEqual(progress?.fraction, 0.5)
-        XCTAssertEqual(progress?.processedSeconds, 15)
-        XCTAssertEqual(progress?.speed, "2.5x")
+        #expect(progress != nil)
+        #expect(progress?.fraction == 0.5)
+        #expect(progress?.processedSeconds == 15)
+        #expect(progress?.speed == "2.5x")
     }
 
-    func testClampsProgress() {
+
+    @Test func clampsProgress() {
         var parser = FFmpegProgressParser(duration: 30)
 
         _ = parser.consume("out_time_us=35000000")
 
         let progress = parser.consume("progress=end")
 
-        XCTAssertEqual(progress?.fraction, 1)
+        #expect(progress?.fraction == 1)
     }
 
-    func testRejectsInvalidDuration() {
+
+    @Test func rejectsInvalidDuration() {
         var parser = FFmpegProgressParser(duration: 0)
 
         _ = parser.consume("out_time_us=15000000")
 
-        XCTAssertNil(parser.consume("progress=continue"))
+        #expect(parser.consume("progress=continue") == nil)
     }
 }

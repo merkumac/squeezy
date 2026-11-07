@@ -11,8 +11,7 @@ import Testing
 struct CompressionPlannerProfileTests {
     private let planner = CompressionPlanner()
 
-    @Test
-    func tinyDownscales4K() throws {
+    @Test func tinyDownscales4K() throws {
         let plans = planner.makePlans(
             duration: 3600,
             hasAudio: true,
@@ -30,8 +29,8 @@ struct CompressionPlannerProfileTests {
         #expect(tiny.outputHeight == 720)
     }
 
-    @Test
-    func tinyDoesNotUpscale() throws {
+
+    @Test func tinyDoesNotUpscale() throws {
         let plans = planner.makePlans(
             duration: 600,
             hasAudio: true,
@@ -49,8 +48,8 @@ struct CompressionPlannerProfileTests {
         #expect(tiny.outputHeight == 360)
     }
 
-    @Test
-    func qualityUsesHigherBitrateThanBalanced() throws {
+
+    @Test func qualityUsesHigherBitrateThanBalanced() throws {
         let plans = planner.makePlans(
             duration: 3600,
             hasAudio: true,
@@ -72,8 +71,8 @@ struct CompressionPlannerProfileTests {
         #expect(quality.outputHeight == 1080)
     }
 
-    @Test
-    func portraitVideoKeepsOrientation() throws {
+
+    @Test func portraitVideoKeepsOrientation() throws {
         let plans = planner.makePlans(
             duration: 600,
             hasAudio: true,
@@ -90,7 +89,7 @@ struct CompressionPlannerProfileTests {
         #expect(tiny.outputWidth == 720)
         #expect(tiny.outputHeight == 1280)
     }
-    
+
     @Test func detectOutputLargerThanSource() throws {
         let plans = planner.makePlans(
             duration: 3600,
@@ -100,15 +99,15 @@ struct CompressionPlannerProfileTests {
             height: 1080,
             frameRate: 30
         )
-        
+
         let tiny = try #require( plans.first {
             $0.preset == .tiny
         })
-        
+
         let quality = try #require( plans.first {
             $0.preset == .quality
         })
-        
+
         #expect(!tiny.exceedsSourceSize)
         #expect(quality.exceedsSourceSize)
     }
