@@ -6,6 +6,11 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		0651AA8D309FDF9F0070B7B3 /* ffprobe in Resources */ = {isa = PBXBuildFile; fileRef = 0651AA8C309FDF9F0070B7B3 /* ffprobe */; };
+		0651AA8F309FDFC00070B7B3 /* ffmpeg in Resources */ = {isa = PBXBuildFile; fileRef = 0651AA8E309FDFC00070B7B3 /* ffmpeg */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		0651AA4D308DF7700070B7B3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,8 @@
 		0651AA3F308DF76F0070B7B3 /* Squeezy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Squeezy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0651AA4C308DF7700070B7B3 /* SqueezyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SqueezyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0651AA56308DF7700070B7B3 /* SqueezyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SqueezyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0651AA8C309FDF9F0070B7B3 /* ffprobe */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ffprobe; sourceTree = "<group>"; };
+		0651AA8E309FDFC00070B7B3 /* ffmpeg */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ffmpeg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -69,6 +76,7 @@
 		0651AA36308DF76F0070B7B3 = {
 			isa = PBXGroup;
 			children = (
+				0651AA8B309FDF180070B7B3 /* Tools */,
 				0651AA41308DF76F0070B7B3 /* Squeezy */,
 				0651AA4F308DF7700070B7B3 /* SqueezyTests */,
 				0651AA59308DF7700070B7B3 /* SqueezyUITests */,
@@ -84,6 +92,15 @@
 				0651AA56308DF7700070B7B3 /* SqueezyUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		0651AA8B309FDF180070B7B3 /* Tools */ = {
+			isa = PBXGroup;
+			children = (
+				0651AA8E309FDFC00070B7B3 /* ffmpeg */,
+				0651AA8C309FDF9F0070B7B3 /* ffprobe */,
+			);
+			path = Tools;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -197,6 +214,8 @@
 		0651AA3D308DF76F0070B7B3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				0651AA8F309FDFC00070B7B3 /* ffmpeg in Resources */,
+				0651AA8D309FDF9F0070B7B3 /* ffprobe in Resources */,
 			);
 		};
 		0651AA4A308DF7700070B7B3 /* Resources */ = {

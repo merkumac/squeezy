@@ -49,24 +49,15 @@ nonisolated struct VideoProbe {
     }
     
     private func inspectVideo(_ url: URL) async throws -> VideoInfo {
-        let executable = "/opt/homebrew/bin//ffprobe"
-        
-        print("=== SQUEEZY DIAGNOSTICS ===")
-        print("Executable:", executable)
-        print("Exists:",
-              FileManager.default.fileExists(atPath: executable))
-        print("Executable:",
-              FileManager.default.isExecutableFile(atPath: executable))
-        print("Sandbox:",
-              ProcessInfo.processInfo.environment["APP_SANDBOX_CONTAINER_ID"] ?? "not detected")
-        print("==========================")
-        
-        guard FileManager.default.isExecutableFile(atPath: executable) else {
+        guard let executable = Bundle.main.url(
+            forResource: "ffprobe",
+            withExtension: nil
+        ) else {
             throw VideoProbeError.executableNotFound
         }
         
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: executable)
+        process.executableURL = executable
         process.arguments = [
             "-v", "error",
             "-show_entries",
@@ -79,8 +70,6 @@ nonisolated struct VideoProbe {
         let errors = Pipe()
         process.standardOutput = output
         process.standardError = errors
-        
-        print("FFPROBE ARGS:", process.arguments ?? [])
         
         try process.run()
         

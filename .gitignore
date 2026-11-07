@@ -7,3 +7,7 @@
 
 # ffmpeg temp files
 *.part
+
+# locally build slim ffmpeg tools
+Tools/ffmpeg
+Tools/ffprobe

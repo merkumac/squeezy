@@ -15,8 +15,15 @@ nonisolated struct VideoEncoder {
                 control: EncodingControl,
                 onProgress: @escaping @Sendable (EncodingProgress) -> Void
     ) throws {
+        guard let executable = Bundle.main.url(
+            forResource: "ffmpeg",
+            withExtension: nil
+        ) else {
+            throw VideoEncoderError.executableNotFound
+        }
+        
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/ffmpeg")
+        process.executableURL = executable
         
         var videoFilters: [String] = []
         
@@ -140,6 +147,7 @@ nonisolated enum VideoEncoderError: LocalizedError {
     case encodingFailed(Int32, String)
     case outputMissing
     case outputAlreadyExists
+    case executableNotFound
     
     var errorDescription: String? {
         switch self {
@@ -151,6 +159,9 @@ nonisolated enum VideoEncoderError: LocalizedError {
             
         case .outputAlreadyExists:
             "Output file already exists."
+            
+        case .executableNotFound:
+            "Bundled FFmpeg executable was not found."
         }
     }
 }
