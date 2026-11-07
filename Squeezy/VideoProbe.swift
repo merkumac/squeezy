@@ -44,11 +44,11 @@ nonisolated struct VideoProbe {
     
     func inspect(_ url: URL) async throws -> VideoInfo {
         try await Task.detached(priority: .userInitiated) {
-            try inspectSynchronously(url)
+            try await inspectVideo(url)
         }.value
     }
     
-    private func inspectSynchronously(_ url: URL) throws -> VideoInfo {
+    private func inspectVideo(_ url: URL) async throws -> VideoInfo {
         let executable = "/opt/homebrew/bin//ffprobe"
         
         print("=== SQUEEZY DIAGNOSTICS ===")
@@ -84,12 +84,18 @@ nonisolated struct VideoProbe {
         
         try process.run()
         
+        let errorTask = Task.detached {
+            errors.fileHandleForReading.readDataToEndOfFile()
+        }
+        
         let data = output.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
         
+        let errorData = await errorTask.value
+        
         guard process.terminationStatus == 0 else {
             let message = String(
-                decoding: errors.fileHandleForReading.readDataToEndOfFile(),
+                decoding: errorData,
                 as: UTF8.self
             )
             throw VideoProbeError.probeFailed(message)

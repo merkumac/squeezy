@@ -20,7 +20,7 @@ nonisolated struct VideoEncoder {
         
         var videoFilters: [String] = []
         
-        if plan.outputWidth > 0 && plan.outputHeight > 0 {
+        if plan.needsScaling {
             videoFilters = [
                 "-vf",
                 "scale=\(plan.outputWidth):\(plan.outputHeight)"
@@ -35,7 +35,7 @@ nonisolated struct VideoEncoder {
             "-nostats",
             "-i", inputURL.path(percentEncoded: false),
             "-map", "0:v:0",
-            "-map", "0:a?"
+            "-map", "0:a:0?"
             ]
             + videoFilters
             + [
@@ -75,13 +75,16 @@ nonisolated struct VideoEncoder {
         let stderrQueue = DispatchQueue(label: "squeezy.ffmpeg.stderr")
         let stderrGroup = DispatchGroup()
         
+        let errorOutput = ErrorOutput()
+        
+        
         stderrGroup.enter()
         stderrQueue.async {
             let data = errorPipe.fileHandleForReading.readDataToEndOfFile()
             
             if !data.isEmpty {
                 let message = String(decoding: data, as: UTF8.self)
-                print("FFmpeg:", message)
+                errorOutput.store(data)
             }
             
             stderrGroup.leave()
@@ -116,9 +119,12 @@ nonisolated struct VideoEncoder {
             throw CancellationError()
         }
         
+        let message = String(decoding: errorOutput.read(), as: UTF8.self)
+        
         guard process.terminationStatus == 0 else {
             throw VideoEncoderError.encodingFailed(
-                process.terminationStatus
+                process.terminationStatus,
+                message
             )
         }
         
@@ -131,14 +137,14 @@ nonisolated struct VideoEncoder {
 }
 
 nonisolated enum VideoEncoderError: LocalizedError {
-    case encodingFailed(Int32)
+    case encodingFailed(Int32, String)
     case outputMissing
     case outputAlreadyExists
     
     var errorDescription: String? {
         switch self {
-        case .encodingFailed(let status):
-            "FFmpeg failed with exit code \(status)."
+        case .encodingFailed(let status, let message):
+            "FFmpeg failed with exit code \(status): \(message)."
             
         case .outputMissing:
             "FFmpeg finished but the output file is missing."
@@ -146,5 +152,23 @@ nonisolated enum VideoEncoderError: LocalizedError {
         case .outputAlreadyExists:
             "Output file already exists."
         }
+    }
+}
+
+
+nonisolated final class ErrorOutput: @unchecked Sendable {
+    private let lock = NSLock()
+    private var data = Data()
+    
+    func store(_ value: Data) {
+        lock.lock()
+        defer {lock.unlock() }
+        data = value
+    }
+    
+    func read() -> Data {
+        lock.lock()
+        defer { lock.unlock() }
+        return data
     }
 }

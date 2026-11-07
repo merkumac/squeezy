@@ -220,6 +220,12 @@ struct ContentView: View {
             return
         }
         
+        guard !FileManager.default.fileExists(atPath: output.path(percentEncoded: false)
+        ) else {
+            presentError("A file with this name already exists.")
+            return
+        }
+        
         let temporaryOutput = output
             .deletingLastPathComponent()
             .appendingPathComponent(".squeezy-\(UUID().uuidString).mp4")
@@ -256,11 +262,6 @@ struct ContentView: View {
             
             guard !control.isCancelled else {
                 throw CancellationError()
-            }
-            
-            guard !FileManager.default.fileExists(atPath: output.path(percentEncoded: false)
-            ) else {
-                throw CocoaError(.fileWriteFileExists)
             }
             
             try FileManager.default.moveItem(
@@ -323,7 +324,7 @@ struct ContentView: View {
     }
     
     private func handleFile(_ url: URL) async {
-        guard !isAnalyzing else { return }
+        guard !isAnalyzing, !isCompressing else { return }
         
         print("URL:", url)
         print("PATH:", url.path)

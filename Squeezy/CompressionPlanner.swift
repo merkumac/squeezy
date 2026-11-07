@@ -41,19 +41,21 @@ nonisolated struct CompressionPlan: Identifiable {
     let outputWidth: Int
     let outputHeight: Int
     let sourceBytes: Int64
+    let sourceWidth: Int
+    let sourceHeight: Int
     
     var id: CompressionPreset { preset }
     
     var exceedsSourceSize: Bool {
         estimatedBytes > sourceBytes
     }
+    
+    var needsScaling: Bool {
+        outputWidth != sourceWidth || outputHeight != sourceHeight
+    }
 }
 
 nonisolated struct CompressionPlanner {
-    private let overheadFactor = 0.95
-    private let minimumVideoBitrate = 150_000
-    private let maximumSourceRatio = 0.90
-    
     func makePlans(
         duration: Double,
         hasAudio: Bool,
@@ -93,7 +95,9 @@ nonisolated struct CompressionPlanner {
                 isFeasible: true,
                 outputWidth: dimensions.width,
                 outputHeight: dimensions.height,
-                sourceBytes: sourceBytes
+                sourceBytes: sourceBytes,
+                sourceWidth: width,
+                sourceHeight: height
             )
         }
     }
