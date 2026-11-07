@@ -90,5 +90,27 @@ struct CompressionPlannerProfileTests {
         #expect(tiny.outputWidth == 720)
         #expect(tiny.outputHeight == 1280)
     }
+    
+    @Test func detectOutputLargerThanSource() throws {
+        let plans = planner.makePlans(
+            duration: 3600,
+            hasAudio: true,
+            sourceBytes: 1_000_000_000,
+            width: 1920,
+            height: 1080,
+            frameRate: 30
+        )
+        
+        let tiny = try #require( plans.first {
+            $0.preset == .tiny
+        })
+        
+        let quality = try #require( plans.first {
+            $0.preset == .quality
+        })
+        
+        #expect(!tiny.exceedsSourceSize)
+        #expect(quality.exceedsSourceSize)
+    }
 }
 

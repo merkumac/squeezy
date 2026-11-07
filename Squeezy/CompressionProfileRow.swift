@@ -41,6 +41,13 @@ struct CompressionProfileRow: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(sizeText)
                         .font(.headline)
+                        .foregroundStyle(plan.exceedsSourceSize ? .red : .primary)
+                    
+                    if plan.exceedsSourceSize {
+                        Label("Larger than original", systemImage: "exclamationmark.triangle")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
                     
                     if !plan.isFeasible {
                         Label(

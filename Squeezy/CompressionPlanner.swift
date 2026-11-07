@@ -40,8 +40,13 @@ nonisolated struct CompressionPlan: Identifiable {
     let isFeasible: Bool
     let outputWidth: Int
     let outputHeight: Int
+    let sourceBytes: Int64
     
     var id: CompressionPreset { preset }
+    
+    var exceedsSourceSize: Bool {
+        estimatedBytes > sourceBytes
+    }
 }
 
 nonisolated struct CompressionPlanner {
@@ -87,7 +92,8 @@ nonisolated struct CompressionPlanner {
                 estimatedBytes: estimatedBytes,
                 isFeasible: true,
                 outputWidth: dimensions.width,
-                outputHeight: dimensions.height
+                outputHeight: dimensions.height,
+                sourceBytes: sourceBytes
             )
         }
     }
