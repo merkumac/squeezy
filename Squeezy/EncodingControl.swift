@@ -2,7 +2,7 @@
 //  EncodingControl.swift
 //  Squeezy
 //
-//  Created by kort on 01/11/2026.
+//  Created by merkumac on 01/11/2026.
 //
 
 import Foundation

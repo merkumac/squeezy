@@ -2,7 +2,7 @@
 //  VideoInfo.swift
 //  Squeezy
 //
-//  Created by kort on 25/10/2026.
+//  Created by merkumac on 25/10/2026.
 //
 
 

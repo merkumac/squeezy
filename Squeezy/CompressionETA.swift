@@ -2,7 +2,7 @@
 //  CompressionETA.swift
 //  Squeezy
 //
-//  Created by kort on 02/11/2026.
+//  Created by merkumac on 02/11/2026.
 //
 
 import Foundation

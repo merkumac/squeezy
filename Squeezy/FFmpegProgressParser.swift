@@ -2,7 +2,7 @@
 //  FFmpegProgressParser.swift
 //  Squeezy
 //
-//  Created by kort on 26/10/2026.
+//  Created by merkumac on 26/10/2026.
 //
 
 import Foundation
