@@ -98,7 +98,7 @@ struct ContentView: View {
                 
                 if isCompressing, let encodingProgress {
                     VStack(alignment: .leading, spacing: 8) {
-                        ProgressView(value: encodingProgress.fraction).progressViewStyle(.linear)
+                        ProgressView(value: encodingProgress.fraction).progressViewStyle(.linear).tint(Color(red: 0, green: 175.0 / 255, blue: 1))
                         
                         HStack {
                             Text(

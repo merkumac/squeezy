@@ -90,7 +90,6 @@ nonisolated struct VideoEncoder {
             let data = errorPipe.fileHandleForReading.readDataToEndOfFile()
             
             if !data.isEmpty {
-                let message = String(decoding: data, as: UTF8.self)
                 errorOutput.store(data)
             }
             
