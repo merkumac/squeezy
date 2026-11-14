@@ -1,9 +1,5 @@
-//
-//  CompressionETA.swift
-//  Squeezy
-//
-//  Created by merkumac on 02/11/2026.
-//
+// SPDX-FileCopyrightText: 2026 merkumac
+// SPDX-License-Identifier: MIT
 
 import Foundation
 

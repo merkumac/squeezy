@@ -1,10 +1,5 @@
-//
-//  VideoProbe.swift
-//  Squeezy
-//
-//  Created by merkumac on 25/10/2026.
-//
-
+// SPDX-FileCopyrightText: 2026 merkumac
+// SPDX-License-Identifier: MIT
 import Foundation
 
 enum VideoProbeError: LocalizedError {
