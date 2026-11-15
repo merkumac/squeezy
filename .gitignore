@@ -11,3 +11,6 @@
 # locally build slim ffmpeg tools
 Tools/ffmpeg
 Tools/ffprobe
+
+# user stuff
+**/xcuserdata/

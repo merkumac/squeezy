@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: 2026 merkumac
 // SPDX-License-Identifier: MIT
-
 import Foundation
 
 nonisolated struct VideoEncoder {
@@ -11,10 +10,9 @@ nonisolated struct VideoEncoder {
                 control: EncodingControl,
                 onProgress: @escaping @Sendable (EncodingProgress) -> Void
     ) throws {
-        guard let executable = Bundle.main.url(
-            forResource: "ffmpeg",
-            withExtension: nil
-        ) else {
+        let executable = Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/ffmpeg")
+        
+        guard FileManager.default.isExecutableFile(atPath: executable.path) else {
             throw VideoEncoderError.executableNotFound
         }
         

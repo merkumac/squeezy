@@ -44,10 +44,9 @@ nonisolated struct VideoProbe {
     }
     
     private func inspectVideo(_ url: URL) async throws -> VideoInfo {
-        guard let executable = Bundle.main.url(
-            forResource: "ffprobe",
-            withExtension: nil
-        ) else {
+        let executable = Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/ffprobe")
+        
+        guard FileManager.default.isExecutableFile(atPath: executable.path) else {
             throw VideoProbeError.executableNotFound
         }
         

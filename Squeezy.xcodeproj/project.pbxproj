@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0651AA8D309FDF9F0070B7B3 /* ffprobe in Resources */ = {isa = PBXBuildFile; fileRef = 0651AA8C309FDF9F0070B7B3 /* ffprobe */; };
-		0651AA8F309FDFC00070B7B3 /* ffmpeg in Resources */ = {isa = PBXBuildFile; fileRef = 0651AA8E309FDFC00070B7B3 /* ffmpeg */; };
+		0651AA9130AA1C080070B7B3 /* ffmpeg in Embed FFmpeg Tools */ = {isa = PBXBuildFile; fileRef = 0651AA8E309FDFC00070B7B3 /* ffmpeg */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		0651AA9230AA1C0E0070B7B3 /* ffprobe in Embed FFmpeg Tools */ = {isa = PBXBuildFile; fileRef = 0651AA8C309FDF9F0070B7B3 /* ffprobe */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,6 +27,19 @@
 			remoteInfo = Squeezy;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0651AA9030AA1BDD0070B7B3 /* Embed FFmpeg Tools */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = Contents/Helpers;
+			dstSubfolder = Wrapper;
+			files = (
+				0651AA9230AA1C0E0070B7B3 /* ffprobe in Embed FFmpeg Tools */,
+				0651AA9130AA1C080070B7B3 /* ffmpeg in Embed FFmpeg Tools */,
+			);
+			name = "Embed FFmpeg Tools";
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0651AA3F308DF76F0070B7B3 /* Squeezy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Squeezy.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -113,6 +126,7 @@
 				0651AA3B308DF76F0070B7B3 /* Sources */,
 				0651AA3C308DF76F0070B7B3 /* Frameworks */,
 				0651AA3D308DF76F0070B7B3 /* Resources */,
+				0651AA9030AA1BDD0070B7B3 /* Embed FFmpeg Tools */,
 			);
 			buildRules = (
 			);
@@ -214,8 +228,6 @@
 		0651AA3D308DF76F0070B7B3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
-				0651AA8F309FDFC00070B7B3 /* ffmpeg in Resources */,
-				0651AA8D309FDF9F0070B7B3 /* ffprobe in Resources */,
 			);
 		};
 		0651AA4A308DF7700070B7B3 /* Resources */ = {
