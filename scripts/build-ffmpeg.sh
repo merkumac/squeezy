@@ -11,6 +11,29 @@ readonly WORK_DIR="/tmp/squeezy-ffmpeg-build"
 readonly ARCHIVE="ffmpeg-${FFMPEG_VERSION}.tar.xz"
 readonly SOURCE_URL="https://ffmpeg.org/releases/${ARCHIVE}"
 
+SOURCE_ARCHIVE=""
+
+if [[ $# -gt 0 ]]; then
+    if [[ $# -ne 2 ]]; then
+        echo "Usage: $0 [--source-archive PATH | --archive-only PATH]" >&2
+        exit 2
+    fi
+
+    case "$1" in
+        --source-archive)
+            SOURCE_ARCHIVE="$2"
+            ;;
+        --archive-only)
+            SOURCE_ARCHIVE="$2"
+            ARCHIVE_ONLY=true
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            exit 2
+            ;;
+    esac
+fi
+
 mkdir -p "$WORK_DIR"
 
 BUILD_DIR="$(mktemp -d "${WORK_DIR}/build.XXXXXXXX")"
@@ -39,6 +62,15 @@ fi
 
 gpg --homedir "$GPG_HOME" --import "${BUILD_DIR}/ffmpeg-devel.asc"
 gpg --homedir "$GPG_HOME" --verify "${BUILD_DIR}/${ARCHIVE}.asc" "${BUILD_DIR}/${ARCHIVE}"
+
+if [[ -n "$SOURCE_ARCHIVE" ]]; then
+    mkdir -p "$(dirname "$SOURCE_ARCHIVE")"
+    cp "${BUILD_DIR}/${ARCHIVE}" "$SOURCE_ARCHIVE"
+fi
+
+if [[ "$ARCHIVE_ONLY" == true ]]; then
+    exit 0
+fi
 
 tar -xf "${BUILD_DIR}/${ARCHIVE}" -C "$BUILD_DIR"
 
@@ -77,7 +109,7 @@ readonly INSTALL_BIN="${BUILD_DIR}/install/bin"
 
 for tool in ffmpeg ffprobe; do
     if [[ ! -x "${INSTALL_BIN}/${tool}" ]]; then
-        echo "ERROR: ${tool} was not build" >&2
+        echo "ERROR: ${tool} was not built" >&2
         exit 1
     fi
 done
