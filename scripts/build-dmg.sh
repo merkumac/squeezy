@@ -12,10 +12,11 @@ if [[ ! -d "$APP" ]]; then
     exit 1
 fi
 
-STAGING="$(mktemp -d)"
-trap 'rm -rf "$STAGING"' EXIT
+WORK_DIR="$(mktemp -d)"
+STAGING="$WORK_DIR/Squeezy"
+trap 'rm -rf "$WORK_DIR"' EXIT
 
-mkdir -p "$DIST_DIR"
+mkdir -p "$STAGING"
 
 ditto "$APP" "$STAGING/Squeezy.app"
 ln -s /Applications "$STAGING/Applications"
